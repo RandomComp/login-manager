@@ -1,0 +1,129 @@
+* {
+    /*border: 5px solid #330033;*/
+}
+
+window {
+	box-shadow: none;
+	border: none;
+	background-color: transparent;
+	opacity: 100%;
+}
+
+#title {
+	font-size: 30px;
+
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.button {
+    margin-right: 5px;
+	border-radius: 30px;
+	opacity: 90%;
+}
+
+#power-button {
+	background-image: none;
+	box-shadow: none;
+	background-color: #cf2e0e;
+}
+
+#power-button:hover {
+	filter: brightness(0.8);
+}
+
+#power-button:active {
+	filter: brightness(0.6);
+}
+
+#restart-button {
+    background-image: none;
+    box-shadow: none;
+	background-color: #333333;
+}
+
+#restart-button:hover {
+	filter: brightness(0.8);
+}
+
+#restart-button:active {
+	filter: brightness(0.6);
+}
+
+#sleep-button {
+    background-image: none;
+    box-shadow: none;
+	background-color: #cc9900;
+}
+
+#sleep-button:hover {
+	filter: brightness(0.8);
+}
+
+#sleep-button:active {
+	filter: brightness(0.6);
+}
+
+#exit-button {
+    background-image: none;
+    box-shadow: none;
+	background-color: #333333;
+}
+
+#exit-button:hover {
+	filter: brightness(0.8);
+}
+
+#exit-button:active {
+	filter: brightness(0.6);
+}
+
+.image {
+	padding: 10px;
+}
+
+/* #power-control-box {
+} */
+
+.entry_icon {
+	margin-left: 10px;
+}
+
+.entry {
+	border-radius: 30px;
+
+	font-size: 20px;
+
+	margin-top: 5px;
+}
+
+#time-label {
+	font-size: 100px;
+	font-family: Inter;
+	font-weight: 400;
+	color: #ffffff;
+}
+
+#date-label {
+	font-size: 20px;
+	font-family: Inter;
+	font-weight: 400;
+	color: #ffffff;
+}
+
+.active-user-label {
+	padding: 15px;
+	font-size: 17px;
+	font-weight: 400;
+	color: #ffffff;
+}
+
+#password-text {
+	color: #ffffff;
+	background-color: #00000080;
+	border-radius: 30px;
+}
+
+#password-text placeholder {
+	filter: brightness(0.5);
+}
