@@ -22,18 +22,18 @@ window {
 	opacity: 90%;
 }
 
+.button:hover {
+	filter: brightness(0.8);
+}
+
+.button:active {
+	filter: brightness(0.6);
+}
+
 #power-button {
 	background-image: none;
 	box-shadow: none;
 	background-color: #cf2e0e;
-}
-
-#power-button:hover {
-	filter: brightness(0.8);
-}
-
-#power-button:active {
-	filter: brightness(0.6);
 }
 
 #restart-button {
@@ -42,40 +42,16 @@ window {
 	background-color: #333333;
 }
 
-#restart-button:hover {
-	filter: brightness(0.8);
-}
-
-#restart-button:active {
-	filter: brightness(0.6);
-}
-
 #sleep-button {
     background-image: none;
     box-shadow: none;
 	background-color: #cc9900;
 }
 
-#sleep-button:hover {
-	filter: brightness(0.8);
-}
-
-#sleep-button:active {
-	filter: brightness(0.6);
-}
-
 #exit-button {
     background-image: none;
     box-shadow: none;
 	background-color: #333333;
-}
-
-#exit-button:hover {
-	filter: brightness(0.8);
-}
-
-#exit-button:active {
-	filter: brightness(0.6);
 }
 
 .image {
@@ -122,6 +98,9 @@ window {
 	color: #ffffff;
 	background-color: #00000080;
 	border-radius: 30px;
+
+	background-color: rgba(127, 127, 127, 0.2);
+	backdrop-filter: blur(8px);
 }
 
 #password-text placeholder {
