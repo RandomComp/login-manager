@@ -22,11 +22,10 @@ window {
 
 	background-image: none;
 	box-shadow: none;
-	min-width: 80px;
 	background-color: rgba(160, 160, 160, 0.3);
 	backdrop-filter: blur(15px);
 	border: 1px solid rgba(160, 160, 160, 0.6);
-	transition: background-color 0.2s ease;
+	transition: background-color 0.15s ease;
 }
 
 .button:hover {
@@ -51,6 +50,26 @@ window {
 	padding: 15px;
 
 	background-color: rgba(160, 160, 160, 0.2);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(160, 160, 160, 0.6);
+	transition: background-color 0.15s ease;
+}
+
+.entry-grub:hover {
+	background-color: rgba(160, 160, 160, 0.5);
+}
+
+.pop-up contents {
+	border-radius: 30px;
+
+	background-color: rgba(160, 160, 160, 0.3);
+	backdrop-filter: blur(8px);
+}
+
+.pop-up arrow {
+	border-radius: 30px;
+
+	background-color: rgba(160, 160, 160, 0.3);
 	backdrop-filter: blur(8px);
 }
 
@@ -82,7 +101,7 @@ window {
 	background-color: #00000080;
 	border-radius: 30px;
 
-	background-color: rgba(160, 160, 160, 0.3);
+	background-color: rgba(160, 160, 160, 0.2);
 	backdrop-filter: blur(8px);
 }
 
