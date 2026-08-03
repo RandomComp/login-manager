@@ -2,7 +2,6 @@
 
 import os
 import re
-import traceback
 import typing
 
 import gi
@@ -18,26 +17,23 @@ from datetime import datetime
 
 from subprocess import run
 
-import sys
-
 from babel.dates import format_date, format_skeleton
 
 def boot(_, index) -> None:
 	run(["/usr/bin/env", "sh", "-c", f"grub-reboot {index} && reboot"], check=False) # TODO: выдавать ошибку
 
-def new_power_button(image_path: str, name: str="", tooltip_text: str="", pixel_size: int=24) -> Gtk.Button:
-	power_texture = Gdk.Texture.new_from_filename(image_path)
-	power_image = Gtk.Image.new_from_paintable(power_texture)
-	power_image.set_pixel_size(pixel_size)
-	power_image.set_name("power-image")
-	power_image.add_css_class("image")
+def new_button(image_path: str, name: str="", tooltip_text: str="", pixel_size: int=24) -> Gtk.Button:
+	texture = Gdk.Texture.new_from_filename(image_path)
+	image = Gtk.Image.new_from_paintable(texture)
+	image.set_pixel_size(pixel_size)
+	image.add_css_class("glass-button-image")
 
-	power_button = Gtk.Button(name=name, tooltip_text=tooltip_text)
-	power_button.add_css_class("button")
+	button = Gtk.Button(name=name, tooltip_text=tooltip_text)
+	button.add_css_class("glass-button")
 
-	power_button.set_child(power_image)
+	button.set_child(image)
 
-	return power_button
+	return button
 
 class BlurredBackground(Gtk.Widget):
 	def __init__(self, image_path: str, blur_radius: float=15.0):
@@ -60,7 +56,7 @@ class BlurredBackground(Gtk.Widget):
 
 		snapshot.pop()
 
-class PowerControlWidget(Gtk.Widget):
+class PowerControlPopUpWidget(Gtk.Revealer):
 	__gsignals__: typing.ClassVar = {
 		'poweroff': (GObject.SignalFlags.RUN_FIRST, None, ()),
 		'restart': (GObject.SignalFlags.RUN_FIRST, None, ()),
@@ -71,63 +67,22 @@ class PowerControlWidget(Gtk.Widget):
 	def __init__(self, work_dir: Path) -> None:
 		super().__init__()
 
-		layout = Gtk.BoxLayout(orientation=Gtk.Orientation.HORIZONTAL)
-
-		self.set_layout_manager(layout)
-
-		self.power_button = new_power_button(str(work_dir / "icons/power.svg"), name="power-button", tooltip_text="Меню питания")
-		self.power_button.set_can_focus(False)
-		self.power_button.connect("clicked", self.poweroff)
-
-		self.power_button.set_parent(self)
-
-		self.set_halign(Gtk.Align.START)
-
-	def poweroff(self, _) -> None:
-		self.emit("poweroff")
-
-	def restart(self, _) -> None:
-		self.emit("restart")
-
-	def sleep(self, _) -> None:
-		self.emit("sleep")
-
-	def exit(self, _) -> None:
-		self.emit("exit")
-
-	def do_dispose(self) -> None:
-		self.power_button.unparent()
-		# self.restart_button.unparent()
-		# self.sleep_button.unparent()
-		# self.exit_button.unparent()
-
-		super().do_dispose()
-
-class PowerControlPopUpWidget(Gtk.Popover):
-	__gsignals__: typing.ClassVar = {
-		'poweroff': (GObject.SignalFlags.RUN_FIRST, None, ()),
-		'restart': (GObject.SignalFlags.RUN_FIRST, None, ()),
-		'sleep': (GObject.SignalFlags.RUN_FIRST, None, ()),
-		'exit': (GObject.SignalFlags.RUN_FIRST, None, ()),
-	}
-
-	def __init__(self, work_dir: Path) -> None:
-		super().__init__()
+		self.pop_up = False
 
 		self.add_css_class("pop-up")
 
 		layout = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-		power_button = new_power_button(str(work_dir / "icons/power.svg"), name="power-button", tooltip_text="Выключить компьютер")
+		power_button = new_button(str(work_dir / "icons/power.svg"), name="power-button", tooltip_text="Выключить компьютер")
 		power_button.connect("clicked", self.poweroff)
 
-		restart_button = new_power_button(str(work_dir / "icons/restart.svg"), name="restart-button", tooltip_text="Перезагрузить компьютер")
+		restart_button = new_button(str(work_dir / "icons/restart.svg"), name="restart-button", tooltip_text="Перезагрузить компьютер")
 		restart_button.connect("clicked", self.restart)
 
-		sleep_button = new_power_button(str(work_dir / "icons/sleep.svg"), name="sleep-button", tooltip_text="Спящий режим")
+		sleep_button = new_button(str(work_dir / "icons/sleep.svg"), name="sleep-button", tooltip_text="Спящий режим")
 		sleep_button.connect("clicked", self.sleep)
 
-		exit_button = new_power_button(str(work_dir / "icons/exit.svg"), name="exit-button", tooltip_text="Выйти из сессии", pixel_size=28)
+		exit_button = new_button(str(work_dir / "icons/exit.svg"), name="exit-button", tooltip_text="Выйти из сессии", pixel_size=28)
 		exit_button.connect("clicked", self.exit)
 
 		layout.append(power_button)
@@ -136,6 +91,28 @@ class PowerControlPopUpWidget(Gtk.Popover):
 		layout.append(exit_button)
 
 		self.set_child(layout)
+
+		self.trans_duration = 120
+
+		self.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
+		self.set_transition_duration(self.trans_duration)
+		self.set_visible(False)
+
+	def popup(self) -> None:
+		self.pop_up = not self.pop_up
+
+		if self.pop_up:
+			self.set_visible(True)
+
+		self.set_reveal_child(self.pop_up)
+
+		GLib.timeout_add(self.trans_duration, self.vanish)
+
+	def vanish(self) -> bool:
+		if not self.pop_up:
+			self.set_visible(False)
+
+		return False
 
 	def poweroff(self, _) -> None:
 		self.emit("poweroff")
@@ -160,19 +137,19 @@ class PowerControlMenuWidget(Gtk.Widget):
 	def __init__(self, work_dir: Path) -> None:
 		super().__init__()
 
-		layout = Gtk.BoxLayout(orientation=Gtk.Orientation.HORIZONTAL)
+		layout = Gtk.BoxLayout(orientation=Gtk.Orientation.VERTICAL)
 
 		self.set_layout_manager(layout)
 
-		self.power_button = new_power_button(str(work_dir / "icons/power.svg"), name="power-button", tooltip_text="Меню питания")
-		self.power_button.set_can_focus(False)
-
 		self.popup = PowerControlPopUpWidget(work_dir)
-		self.popup.set_parent(self.power_button)
+		self.popup.set_parent(self)
+
+		self.power_button = new_button(str(work_dir / "icons/power.svg"), name="power-button", tooltip_text="Меню питания")
+		self.power_button.set_can_focus(False)
+		self.power_button.set_parent(self)
+		self.power_button.set_halign(Gtk.Align.CENTER)
 
 		self.power_button.connect("clicked", self.show_menu)
-
-		self.power_button.set_parent(self)
 
 		self.set_halign(Gtk.Align.CENTER)
 
@@ -333,7 +310,6 @@ class GrubLoaderWidget(Gtk.Widget):
 	def do_dispose(self) -> None:
 		self.text.unparent()
 		self.scrollable.unparent()
-		self.scroll_box.unparent()
 		self.power_control_box.unparent()
 
 		super().do_dispose()
@@ -460,10 +436,10 @@ class GreetWidget(Gtk.Widget):
 			if "home" in line:
 				users.append(line.split(":")[0])
 
-		# self.time_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		self.time_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-		# self.time = TimeDateWidget()
-		# self.time.set_vexpand(True)
+		self.time = TimeDateWidget()
+		self.time.set_vexpand(True)
 
 		# # name, logo = "Linux Mint", "linuxmint"
 		# name, logo = get_distro_name_logo()
@@ -482,10 +458,25 @@ class GreetWidget(Gtk.Widget):
 		self.time_box.set_halign(Gtk.Align.CENTER)
 		layout.set_start_widget(self.time_box)
 
-		self.user_entry = UserEntryWidget(users[0])
-		self.user_entry.set_halign(Gtk.Align.CENTER)
-		self.user_entry.set_parent(self)
-		layout.set_center_widget(self.user_entry)
+		self.user_entry_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		self.user_entry_box.set_parent(self)
+
+		user_entry = UserEntryWidget(users[0])
+		user_entry.set_halign(Gtk.Align.CENTER)
+		self.user_entry_box.append(user_entry)
+
+		enter_to_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+		enter_to_box.set_halign(Gtk.Align.CENTER)
+		enter_to_box.append(Gtk.Label(label="Войти в ", name="enter-to-label"))
+
+		enter_to_button = Gtk.Button()
+		enter_to_button.add_css_class("glass-button")
+
+		enter_to_box.append(enter_to_button)
+
+		self.user_entry_box.append(enter_to_box)
+
+		layout.set_center_widget(self.user_entry_box)
 
 		self.power_control_box = PowerControlMenuWidget(work_dir)
 		self.power_control_box.set_halign(Gtk.Align.CENTER)
@@ -510,7 +501,7 @@ class GreetWidget(Gtk.Widget):
 
 	def do_dispose(self) -> None:
 		self.time_box.unparent()
-		self.user_entry.unparent()
+		self.user_entry_box.unparent()
 		# self.power_control_box.unparent()
 
 		super().do_dispose()
@@ -543,6 +534,8 @@ class LoginManagerApp(Gtk.Application):
 		# box = GrubLoaderWidget(self.work_dir)
 
 		box = GreetWidget(self.work_dir)
+
+		box.set_name("main-box")
 
 		box.connect("poweroff", self.poweroff)
 		box.connect("restart", self.restart)
